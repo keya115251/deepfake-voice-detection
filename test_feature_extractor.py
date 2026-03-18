@@ -1,35 +1,30 @@
 import os
-from utils.dataset_loader import get_file_paths
 from utils.feature_extractor import DualFeatureExtractor
 
+# Path to your dataset folder
+DATA_PATH = "data/processed/ASVspoof2019/LA/train"
 
-
-
-audio_dir = os.path.join(
-    "data",
-    "processed",
-    "ASVspoof2019",
-    "LA",
-    "train"
-)
-
-protocol_path = os.path.join(
-    "data",
-    "raw",
-    "ASVspoof2019",
-    "LA",
-    "ASVspoof2019_LA_cm_protocols",
-    "ASVspoof2019.LA.cm.train.trn.txt"
-)
-
-files, labels = get_file_paths(audio_dir, protocol_path)
-
-# Take only 5 files
-files = files[:5]
-
+# Initialize extractor
 extractor = DualFeatureExtractor()
 
-for i, file in enumerate(files):
+# Get first 5 .wav files
+file_list = [
+    os.path.join(DATA_PATH, f)
+    for f in os.listdir(DATA_PATH)
+    if f.endswith(".wav")
+][:5]
+
+
+# Test extraction
+for i, file in enumerate(file_list):
     print(f"\nProcessing file {i+1}")
-    embedding = extractor.extract(file)
-    print("Embedding shape:", embedding.shape)
+    print("File:", file)
+
+    try:
+        mfcc, wav2vec = extractor.extract(file)
+
+        print("MFCC shape   :", mfcc.shape)      # Expected: (40,)
+        print("Wav2Vec shape:", wav2vec.shape)   # Expected: (768,)
+
+    except Exception as e:
+        print("Error processing file:", e)

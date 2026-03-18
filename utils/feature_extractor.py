@@ -40,7 +40,10 @@ class DualFeatureExtractor:
 
         embedding = outputs.last_hidden_state.mean(dim=1)
 
-        return embedding.squeeze(0).cpu()  # (768,)
+        # ✅ NORMALIZATION (VERY IMPORTANT)
+        embedding = (embedding - embedding.mean()) / (embedding.std() + 1e-6)
+
+        return embedding.squeeze(0)  # (768,)
 
     def extract_mfcc(self, waveform, sample_rate=16000):
         mfcc = librosa.feature.mfcc(
@@ -49,23 +52,19 @@ class DualFeatureExtractor:
             n_mfcc=40
         )
 
-        # normalize
-        mfcc = (mfcc - np.mean(mfcc)) / (np.std(mfcc) + 1e-6)
+        mfcc_mean = np.mean(mfcc, axis=1)
 
-        # pad/trim → match CNN input
-        max_len = 100
-        if mfcc.shape[1] < max_len:
-            pad = max_len - mfcc.shape[1]
-            mfcc = np.pad(mfcc, ((0, 0), (0, pad)))
-        else:
-            mfcc = mfcc[:, :max_len]
+        mfcc_tensor = torch.tensor(mfcc_mean, dtype=torch.float32)
 
-        return torch.tensor(mfcc, dtype=torch.float32).unsqueeze(0)  # (1, 40, 100)
+        # ✅ Normalize MFCC too
+        mfcc_tensor = (mfcc_tensor - mfcc_tensor.mean()) / (mfcc_tensor.std() + 1e-6)
+
+        return mfcc_tensor.to(self.device)
 
     def extract(self, file_path):
         waveform, sample_rate = librosa.load(file_path, sr=16000)
 
-        mfcc = self.extract_mfcc(waveform, sample_rate)
-        wav2vec = self.extract_wav2vec(waveform)
+        wav2vec_embedding = self.extract_wav2vec(waveform)
+        mfcc_embedding = self.extract_mfcc(waveform, sample_rate)
 
-        return mfcc, wav2vec
+        return mfcc_embedding, wav2vec_embedding
