@@ -26,9 +26,6 @@ class DualFeatureExtractor:
         print("Model loaded successfully.")
 
     def extract_wav2vec(self, waveform):
-        """
-        Extract wav2vec2 768-d embedding
-        """
         inputs = self.processor(
             waveform,
             sampling_rate=16000,
@@ -43,36 +40,32 @@ class DualFeatureExtractor:
 
         embedding = outputs.last_hidden_state.mean(dim=1)
 
-        return embedding.squeeze(0)  # (768,)
+        return embedding.squeeze(0).cpu()  # (768,)
 
     def extract_mfcc(self, waveform, sample_rate=16000):
-        """
-        Extract MFCC 40-d features (mean pooled)
-        """
         mfcc = librosa.feature.mfcc(
             y=waveform,
             sr=sample_rate,
             n_mfcc=40
         )
 
-        # Mean over time axis
-        mfcc_mean = np.mean(mfcc, axis=1)
+        # normalize
+        mfcc = (mfcc - np.mean(mfcc)) / (np.std(mfcc) + 1e-6)
 
-        return torch.tensor(mfcc_mean, dtype=torch.float32).to(self.device)
+        # pad/trim → match CNN input
+        max_len = 100
+        if mfcc.shape[1] < max_len:
+            pad = max_len - mfcc.shape[1]
+            mfcc = np.pad(mfcc, ((0, 0), (0, pad)))
+        else:
+            mfcc = mfcc[:, :max_len]
+
+        return torch.tensor(mfcc, dtype=torch.float32).unsqueeze(0)  # (1, 40, 100)
 
     def extract(self, file_path):
-        """
-        Returns fused 808-d feature vector
-        """
-
-        # 1️⃣ Load audio
         waveform, sample_rate = librosa.load(file_path, sr=16000)
 
-        # 2️⃣ Extract both branches
-        wav2vec_embedding = self.extract_wav2vec(waveform)
-        mfcc_embedding = self.extract_mfcc(waveform, sample_rate)
+        mfcc = self.extract_mfcc(waveform, sample_rate)
+        wav2vec = self.extract_wav2vec(waveform)
 
-        # 3️⃣ Concatenate
-        combined = torch.cat([wav2vec_embedding, mfcc_embedding], dim=0)
-
-        return combined  # (808,)
+        return mfcc, wav2vec
