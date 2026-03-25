@@ -68,3 +68,12 @@ class DualFeatureExtractor:
         mfcc_embedding = self.extract_mfcc(waveform, sample_rate)
 
         return mfcc_embedding, wav2vec_embedding
+    def extract_from_waveform(self, waveform, sample_rate=16000):
+    # Ensure waveform is numpy (librosa expects it)
+        if isinstance(waveform, torch.Tensor):
+            waveform = waveform.cpu().numpy()
+
+        wav2vec_embedding = self.extract_wav2vec(waveform)
+        mfcc_embedding = self.extract_mfcc(waveform, sample_rate)
+
+        return mfcc_embedding, wav2vec_embedding

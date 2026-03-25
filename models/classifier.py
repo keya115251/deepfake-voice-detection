@@ -12,7 +12,6 @@ class MFCC_CNN(nn.Module):
 
         self.conv1 = nn.Conv2d(1, 16, kernel_size=3, padding=1)
         self.pool = nn.MaxPool2d((2, 1))  # ✅ only reduce height
-
         self.flatten = nn.Flatten()
 
         # Input: [batch, 1, 40, 1]
