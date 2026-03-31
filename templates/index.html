@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Deepfake Detector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+            color: white;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: #00c6ff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0072ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>🎤 Deepfake Voice Detector</h2>
+        <p>Upload a .wav file</p>
+
+        <form action="/predict" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" accept=".wav" required><br><br>
+            <button type="submit">Analyze</button>
+        </form>
+    </div>
+</body>
+</html>

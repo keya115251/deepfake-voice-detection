@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Result</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            padding-top: 100px;
+        }
+        .box {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            display: inline-block;
+        }
+        a {
+            color: #00c6ff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h2>Result: {{ result }}</h2>
+        <p>Confidence: {{ confidence }}</p>
+
+        <br>
+        <a href="/">🔁 Try another</a>
+    </div>
+</body>
+</html>

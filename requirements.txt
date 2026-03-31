@@ -1,14 +1,37 @@
+# -----------------------
+# PyTorch
+# -----------------------
 torch==2.2.2
 torchaudio==2.2.2
 torchvision==0.17.2
 
+# -----------------------
+# HuggingFace / NLP
+# -----------------------
 transformers==4.38.2
 huggingface-hub==0.20.3
 
+# -----------------------
+# Audio Processing
+# -----------------------
 numpy==1.26.4
 librosa==0.10.1
 soundfile==0.12.1
 
+# -----------------------
+# ML / Utilities
+# -----------------------
 scikit-learn==1.4.2
 tqdm==4.66.2
 matplotlib==3.8.4
+
+# -----------------------
+# Web App 
+# -----------------------
+flask==3.0.2
+werkzeug==3.0.1
+
+# -----------------------
+# Optional (recommended)
+# -----------------------
+requests==2.31.0   # for API testing
