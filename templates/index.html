@@ -1,47 +1,295 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Deepfake Detector</title>
+    <title>Deepfake Voice Detector</title>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea, #764ba2);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            margin: 0;
             color: white;
+            padding: 20px;
         }
         .card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
             border-radius: 15px;
             text-align: center;
             backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 420px;
         }
-        button {
-            padding: 10px 20px;
-            border: none;
+        h2 { margin-bottom: 8px; }
+        .subtitle { opacity: 0.75; font-size: 0.85em; margin-bottom: 30px; }
+        .tabs {
+            display: flex;
             border-radius: 8px;
-            background: #00c6ff;
-            color: white;
-            cursor: pointer;
+            overflow: hidden;
+            margin-bottom: 25px;
+            background: rgba(255,255,255,0.1);
         }
-        button:hover {
-            background: #0072ff;
+        .tab {
+            flex: 1; padding: 10px; cursor: pointer;
+            border: none; background: transparent;
+            color: white; font-size: 0.9em;
+            opacity: 0.6; transition: all 0.2s;
         }
+        .tab.active { background: rgba(255,255,255,0.2); opacity: 1; font-weight: bold; }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .upload-area {
+            border: 2px dashed rgba(255,255,255,0.4);
+            border-radius: 10px; padding: 25px;
+            margin-bottom: 15px; cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .upload-area:hover { border-color: white; }
+        .upload-area input { display: none; }
+        .upload-icon { font-size: 2em; margin-bottom: 8px; }
+        .upload-label { font-size: 0.85em; opacity: 0.8; }
+        .file-chosen { margin-top: 8px; font-size: 0.8em; opacity: 0.7; font-style: italic; }
+        .record-area { padding: 10px 0; }
+        .record-btn {
+            width: 70px; height: 70px; border-radius: 50%;
+            border: 3px solid white;
+            background: rgba(255,255,255,0.15);
+            color: white; font-size: 1.8em;
+            cursor: pointer; transition: all 0.2s; margin-bottom: 12px;
+        }
+        .record-btn:hover { background: rgba(255,255,255,0.25); }
+        .record-btn.recording {
+            background: #ff6b6b; border-color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(255,107,107,0.6); }
+            70%  { box-shadow: 0 0 0 12px rgba(255,107,107,0); }
+            100% { box-shadow: 0 0 0 0 rgba(255,107,107,0); }
+        }
+        .record-status { font-size: 0.85em; opacity: 0.8; margin-bottom: 10px; min-height: 20px; }
+        .timer { font-size: 1.2em; font-weight: bold; min-height: 24px; margin-bottom: 10px; }
+        audio { width: 100%; margin: 10px 0; border-radius: 8px; }
+        .submit-btn {
+            width: 100%; padding: 12px; border: none;
+            border-radius: 8px; background: #00c6ff;
+            color: white; font-size: 1em; cursor: pointer;
+            margin-top: 10px; transition: background 0.2s;
+        }
+        .submit-btn:hover { background: #0072ff; }
+        .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .loading { display: none; margin-top: 15px; font-size: 0.9em; opacity: 0.8; }
+        .spinner {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: white; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            vertical-align: middle; margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error-msg { color: #ffb3b3; font-size: 0.85em; margin-top: 10px; min-height: 20px; }
     </style>
 </head>
 <body>
-    <div class="card">
-        <h2>🎤 Deepfake Voice Detector</h2>
-        <p>Upload a .wav file</p>
+<div class="card">
+    <h2>🎤 Deepfake Voice Detector</h2>
+    <p class="subtitle">Supports English, Hindi and Telugu</p>
 
-        <form action="/predict" method="post" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".wav" required><br><br>
-            <button type="submit">Analyze</button>
-        </form>
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('upload')">📂 Upload File</button>
+        <button class="tab"        onclick="switchTab('record')">🎙️ Record Audio</button>
     </div>
+
+    <!-- UPLOAD PANEL -->
+    <div class="panel active" id="panel-upload">
+        <form id="upload-form" action="/predict" method="post" enctype="multipart/form-data">
+            <div class="upload-area" onclick="document.getElementById('file-input').click()">
+                <div class="upload-icon">📁</div>
+                <div class="upload-label">Click to select an audio file</div>
+                <div class="upload-label" style="font-size:0.75em; margin-top:4px">wav · mp3 · flac · m4a · ogg</div>
+                <div class="file-chosen" id="file-chosen">No file chosen</div>
+                <input type="file" id="file-input" name="file"
+                       accept=".wav,.mp3,.flac,.m4a,.ogg"
+                       onchange="onFileChosen(this)" required>
+            </div>
+            <button type="submit" class="submit-btn" id="upload-btn" disabled>Analyze</button>
+        </form>
+        <div class="loading" id="upload-loading">
+            <span class="spinner"></span> Analyzing audio...
+        </div>
+        <div class="error-msg" id="upload-error"></div>
+    </div>
+
+    <!-- RECORD PANEL -->
+    <div class="panel" id="panel-record">
+        <div class="record-area">
+            <button class="record-btn" id="record-btn" onclick="toggleRecord()">🎙️</button>
+            <div class="record-status" id="record-status">Press to start recording</div>
+            <div class="timer" id="timer"></div>
+            <audio id="audio-preview" controls style="display:none"></audio>
+        </div>
+        <button class="submit-btn" id="record-submit" disabled onclick="submitRecording(event)">
+            Analyze Recording
+        </button>
+        <div class="loading" id="record-loading">
+            <span class="spinner"></span> Analyzing audio...
+        </div>
+        <div class="error-msg" id="record-error"></div>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        document.querySelectorAll(".tab").forEach((t, i) => {
+            t.classList.toggle("active", (i === 0 && tab === "upload") || (i === 1 && tab === "record"));
+        });
+        document.getElementById("panel-upload").classList.toggle("active", tab === "upload");
+        document.getElementById("panel-record").classList.toggle("active", tab === "record");
+    }
+
+    function onFileChosen(input) {
+        const label = document.getElementById("file-chosen");
+        const btn   = document.getElementById("upload-btn");
+        if (input.files.length > 0) {
+            label.textContent = input.files[0].name;
+            btn.disabled = false;
+        }
+    }
+
+    document.getElementById("upload-form").addEventListener("submit", function () {
+        document.getElementById("upload-loading").style.display = "block";
+        document.getElementById("upload-btn").disabled = true;
+        document.getElementById("upload-error").textContent = "";
+    });
+
+    let mediaRecorder = null;
+    let audioChunks   = [];
+    let recordedBlob  = null;
+    let timerInterval = null;
+    let seconds       = 0;
+
+    function toggleRecord() {
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            stopRecording();
+        } else {
+            startRecording();
+        }
+    }
+
+    async function startRecording() {
+        document.getElementById("record-error").textContent = "";
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioChunks  = [];
+
+            const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                ? "audio/webm;codecs=opus"
+                : "audio/webm";
+
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+
+            mediaRecorder.ondataavailable = e => {
+                if (e.data.size > 0) audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const actualMime     = mediaRecorder.mimeType;
+                const ext            = actualMime.includes("ogg") ? "ogg" : "webm";
+                window._recordingExt = ext;
+                recordedBlob         = new Blob(audioChunks, { type: actualMime });
+
+                const url     = URL.createObjectURL(recordedBlob);
+                const preview = document.getElementById("audio-preview");
+                preview.src   = url;
+                preview.style.display = "block";
+                document.getElementById("record-submit").disabled = false;
+                document.getElementById("record-status").textContent = "Recording complete. Ready to analyze.";
+                stream.getTracks().forEach(t => t.stop());
+            };
+
+            mediaRecorder.start();
+            document.getElementById("record-btn").classList.add("recording");
+            document.getElementById("record-btn").textContent = "⏹️";
+            document.getElementById("record-status").textContent = "Recording...";
+            document.getElementById("record-submit").disabled = true;
+
+            seconds = 0;
+            document.getElementById("timer").textContent = "0:00";
+            timerInterval = setInterval(() => {
+                seconds++;
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                document.getElementById("timer").textContent = `${m}:${s.toString().padStart(2, "0")}`;
+            }, 1000);
+
+        } catch (err) {
+            document.getElementById("record-error").textContent = "Microphone access denied. Please allow microphone permissions.";
+        }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder) mediaRecorder.stop();
+        clearInterval(timerInterval);
+        document.getElementById("record-btn").classList.remove("recording");
+        document.getElementById("record-btn").textContent = "🎙️";
+        document.getElementById("timer").textContent = "";
+    }
+
+    async function submitRecording(event) {
+        event.preventDefault();
+        if (!recordedBlob) return;
+
+        document.getElementById("record-loading").style.display = "block";
+        document.getElementById("record-submit").disabled = true;
+        document.getElementById("record-error").textContent = "";
+
+        const ext      = window._recordingExt || "webm";
+        const formData = new FormData();
+        formData.append("audio", recordedBlob, `recording.${ext}`);
+
+        try {
+            const response = await fetch("/predict_realtime", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+            console.log("API response:", data);
+            document.getElementById("record-loading").style.display = "none";
+
+            if (data.error) {
+                document.getElementById("record-error").textContent = data.error;
+                document.getElementById("record-submit").disabled = false;
+            } else {
+                const form    = document.createElement("form");
+                form.method   = "POST";
+                form.action   = "/show_result";
+                const fields  = {
+                    result:     data.result,
+                    fake_score: data.fake_score,
+                    real_score: data.real_score
+                };
+                for (const [k, v] of Object.entries(fields)) {
+                    const input = document.createElement("input");
+                    input.type  = "hidden";
+                    input.name  = k;
+                    input.value = v;
+                    form.appendChild(input);
+                }
+                document.body.appendChild(form);
+                form.submit();
+            }
+
+        } catch (err) {
+            console.log("Fetch error:", err);
+            document.getElementById("record-loading").style.display = "none";
+            document.getElementById("record-error").textContent = "Error: " + err.message;
+            document.getElementById("record-submit").disabled = false;
+        }
+    }
+</script>
 </body>
 </html>

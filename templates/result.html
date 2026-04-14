@@ -1,34 +1,113 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Result</title>
+    <title>Deepfake Detector - Result</title>
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea, #764ba2);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             color: white;
-            text-align: center;
-            padding-top: 100px;
+            padding: 20px;
         }
-        .box {
+        .card {
             background: rgba(255,255,255,0.1);
-            padding: 30px;
+            padding: 40px;
             border-radius: 15px;
-            display: inline-block;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 380px;
+        }
+        h2 { margin-bottom: 25px; }
+        .verdict {
+            font-size: 2.2em;
+            font-weight: bold;
+            margin-bottom: 25px;
+        }
+        .verdict.fake { color: #ff6b6b; }
+        .verdict.real { color: #6bffb8; }
+        .scores {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin-bottom: 20px;
+        }
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.95em;
+        }
+        .score-value { font-weight: bold; }
+        .bar-container {
+            width: 100%;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            height: 8px;
+            margin-bottom: 14px;
+        }
+        .bar-fill-real {
+            height: 8px;
+            border-radius: 5px;
+            background: #6bffb8;
+        }
+        .bar-fill-fake {
+            height: 8px;
+            border-radius: 5px;
+            background: #ff6b6b;
+        }
+        .note {
+            font-size: 0.75em;
+            opacity: 0.65;
+            margin-bottom: 20px;
         }
         a {
-            color: #00c6ff;
+            display: inline-block;
+            padding: 10px 25px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 8px;
+            color: white;
             text-decoration: none;
+            font-size: 0.9em;
+            transition: background 0.2s;
         }
+        a:hover { background: rgba(255,255,255,0.25); }
     </style>
 </head>
 <body>
-    <div class="box">
-        <h2>Result: {{ result }}</h2>
-        <p>Confidence: {{ confidence }}</p>
+<div class="card">
+    <h2>🎤 Deepfake Voice Detector</h2>
 
-        <br>
-        <a href="/">🔁 Try another</a>
+    <div class="verdict {{ 'fake' if result == 'FAKE' else 'real' }}">
+        {{ '⚠️ FAKE' if result == 'FAKE' else '✅ REAL' }}
     </div>
+
+    <div class="scores">
+        <div class="score-row">
+            <span>🟢 Real</span>
+            <span class="score-value">{{ real_score }}</span>
+        </div>
+        <div class="bar-container">
+            <div class="bar-fill-real" style="width: {{ real_score }}"></div>
+        </div>
+
+        <div class="score-row">
+            <span>🔴 Fake</span>
+            <span class="score-value">{{ fake_score }}</span>
+        </div>
+        <div class="bar-container">
+            <div class="bar-fill-fake" style="width: {{ fake_score }}"></div>
+        </div>
+    </div>
+
+    <p class="note">{{ note }}</p>
+    <a href="/">🔄 Try another</a>
+</div>
 </body>
 </html>

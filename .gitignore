@@ -1,7 +1,47 @@
+# Python
 venv/
 __pycache__/
 *.pyc
+*.pyo
+.env
+
+# Datasets
 data/
+indic_dataset/
+combined_dataset/
+edgetts_hindi/
+edgetts_telugu/
+processed_dataset/
+final_dataset/
+
+# Audio files
 *.wav
 *.flac
+*.mp3
+*.ogg
+*.webm
+*.m4a
+
+# Temp files
+temp_*.wav
+temp_*.webm
+temp_*.ogg
+
+# Cache
 .cache/
+cache/
+
+# Models (comment out if you want to track them)
+# models/*.pth
+
+# Zips
+*.zip
+
+# Images (training plots)
+*.png
+
+# VS Code
+.vscode/
+
+# Misc
+~$*
