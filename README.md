@@ -1,6 +1,6 @@
 # Deepfake Voice Detection
 
-A deep learning-based system to detect synthetic (deepfake) speech using a combination of self-supervised embeddings and acoustic features.
+A deep learning-based system to detect synthetic (deepfake) speech using a combination of self-supervised embeddings and acoustic features. Supports English, Hindi, and Telugu.
 
 ---
 
@@ -8,9 +8,10 @@ A deep learning-based system to detect synthetic (deepfake) speech using a combi
 
 This project detects whether an audio sample is REAL or FAKE by leveraging:
 
-* Wav2Vec2 embeddings for high-level speech representations
-* MFCC (Mel-Frequency Cepstral Coefficients) for acoustic patterns
-* Dual-branch neural architecture for feature fusion
+- **Wav2Vec2 embeddings** (`facebook/wav2vec2-base`) for high-level speech representations
+- **MFCC** (Mel-Frequency Cepstral Coefficients) for low-level acoustic patterns
+- **Dual-branch neural architecture** for feature fusion
+- **Smart silence stripping** to extract the most speech-dense segment for analysis
 
 ---
 
@@ -18,139 +19,91 @@ This project detects whether an audio sample is REAL or FAKE by leveraging:
 
 The system uses a dual-input pipeline:
 
-* Branch 1: Wav2Vec2 – captures semantic and contextual features
-* Branch 2: MFCC – captures low-level acoustic cues
-* Fusion Layer: Combines both representations
-* Classifier: Fully connected layers for final prediction
+- **Branch 1:** Wav2Vec2 — captures semantic and contextual features
+- **Branch 2:** MFCC — captures low-level acoustic cues
+- **Fusion Layer:** Combines both representations
+- **Classifier:** Fully connected layers for final binary prediction (REAL / FAKE)
 
 ---
 
-## Dataset
+## Datasets
 
-### Primary Dataset
+### Training Data (Combined Multilingual Dataset — ~17.5k samples)
 
-* ASVspoof 2019 (Logical Access)
+| Source | Language | Real | Fake |
+|---|---|---|---|
+| ASVspoof 2019 (LA) | English | 2,580 | 2,580 |
+| AI4Bharat IndicVoices | Hindi | 2,580 | — |
+| AI4Bharat IndicVoices | Telugu | 2,580 | — |
+| Edge-TTS generated | Hindi | — | 2,580 |
+| Edge-TTS generated | Telugu | — | 2,580 |
 
-### Planned Evaluation
-
-* IndicVoices (AI4Bharat) for multilingual testing (in progress)
+Real and fake samples are balanced per language to prevent the model from learning language-specific rather than spoof-specific artifacts.
 
 ---
 
 ## Performance
 
-Example metrics from training on ASVspoof 2019:
+### ASVspoof 2019 Only (English baseline)
 
-* Accuracy: 98.9%
-* Precision: 99.8%
-* Recall: 98.8%
-* F1 Score: 99.3%
-* AUC: 0.9994
-* EER: 0.0091
+| Metric | Score |
+|---|---|
+| Accuracy | 98.9% |
+| Precision | 99.8% |
+| Recall | 98.8% |
+| F1 Score | 99.3% |
+| AUC | 0.9994 |
+| EER | 0.91% |
+
+### Multilingual Model (English + Hindi + Telugu)
+
+| Metric | Score |
+|---|---|
+| Accuracy | 99.45% |
+| Precision | 99.49% |
+| Recall | 99.42% |
+| F1 Score | 99.46% |
+| AUC | 0.9997 |
+| EER | 0.52% |
+
+> Note: Indic fake samples are Edge-TTS generated. Generalization to other TTS systems is a known limitation and area of future work.
 
 ---
 
 ## Features
 
-* Deepfake voice detection (REAL vs FAKE)
-* Web-based interface (Flask)
-* REST API for integration
-* Supports `.wav` audio input
-* High accuracy on benchmark dataset
-* Designed for future multilingual extension
+- Deepfake voice detection (REAL vs FAKE)
+- Multilingual support: English, Hindi, Telugu
+- Web-based interface (Flask) with file upload and live microphone recording
+- Smart audio segmentation — automatically selects the most speech-dense 5-second window
+- Supports multiple audio formats: `.wav`, `.mp3`, `.flac`, `.m4a`, `.ogg`
+- REST API for integration
+- Feature caching for faster retraining
 
 ---
 
 ## Demo (Local)
 
-Run the Flask app:
+### Prerequisites
+
+- Python 3.9+
+- ffmpeg installed and added to PATH
+
+### Installation
 
 ```bash
-python api.py
-```
-
-Open in browser:
-
-```
-http://127.0.0.1:5000
-```
-
-Upload a `.wav` file and get prediction instantly.
-
----
-
-## API Usage
-
-### Endpoint:
-
-```
-POST /predict
-```
-
-### Example (Python):
-
-```python
-import requests
-
-url = "http://127.0.0.1:5000/predict"
-files = {"file": open("test.wav", "rb")}
-
-response = requests.post(url, files=files)
-print(response.json())
-```
-
----
-
-## Project Structure
-
-```
-deepfake-voice-detection/
-│
-├── api.py
-├── classifier.py
-├── feature_extractor.py
-├── models/
-├── templates/
-├── requirements.txt
-```
-
----
-
-## Installation
-
-```bash
-git clone <repo-url>
+git clone https://github.com/keya115251/deepfake-voice-detection
 cd deepfake-voice-detection
-
 pip install -r requirements.txt
 ```
 
----
+### Run
 
-## Future Work
+```bash
+python api2.py
+```
 
-* Multilingual evaluation using IndicVoices dataset
-* Mobile app integration (Android / Flutter)
-* Real-time microphone input
-* Improved generalization across unseen datasets
-* Cloud deployment
-
----
-
-## Status
-
-* Model trained and validated on ASVspoof 2019
-* Web application implemented
-* Multilingual testing in progress
-* Deployment and mobile integration planned
-
----
-
-## Contributions
-
-Contributions, issues, and suggestions are welcome.
-
----
+Open in browser:
 
 ## License
 
