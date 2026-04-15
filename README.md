@@ -104,8 +104,9 @@ python api2.py
 ```
 
 Open in browser:
-<img width="667" height="985" alt="image" src="https://github.com/user-attachments/assets/3670f6a2-f107-4e71-9920-28294e6f27ae" />
-<img width="735" height="980" alt="image" src="https://github.com/user-attachments/assets/112956ab-499e-4994-9588-196c6b9beb00" />
+
+<img width="667" height="980" alt="image" src="https://github.com/user-attachments/assets/3670f6a2-f107-4e71-9920-28294e6f27ae" />
+<img width="667" height="980" alt="image" src="https://github.com/user-attachments/assets/112956ab-499e-4994-9588-196c6b9beb00" />
 
 ## License
 
